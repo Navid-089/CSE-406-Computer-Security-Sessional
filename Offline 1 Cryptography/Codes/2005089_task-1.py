@@ -77,7 +77,7 @@ for i in range(num_chunks):
 encrypt_end = time.time()
 encrypt_interval = encrypt_end - encrypt_start
 
-print("Ciphered Text: ") 
+print("\nCiphered Text: ") 
 final_ciphertext = init_iv + ciphertext
 defs.initial_print(final_ciphertext, hex_first=True) 
 
