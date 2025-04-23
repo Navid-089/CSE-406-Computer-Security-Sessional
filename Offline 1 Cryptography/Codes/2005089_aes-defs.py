@@ -30,7 +30,7 @@ def plaintext_checker(plaintext):
     pad_len = 16 - (len(byte_data) % 16) 
     return byte_data + bytes([pad_len] * pad_len)
 
-def time_print(kst,et,dt):
+def print_time(kst,et,dt):
     print("Execution Time Details:") 
     print("Key Schedule Time: ", kst * 1000, " ms")
     print("Encryption Time: ", et * 1000, " ms")
@@ -136,7 +136,7 @@ def inv_shift_rows(matrix):
         result.append([shifted[8 * j : 8 * (j + 1)] for j in range(4)])
     return result
 
-def create_round_key(prev_key, rcon):
+def generate_round_key(prev_key, rcon):
     w0 = prev_key[0:32]
     w1 = prev_key[32:64]
     w2 = prev_key[64:96]
