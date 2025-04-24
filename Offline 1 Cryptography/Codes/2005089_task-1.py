@@ -9,30 +9,30 @@ defs = importlib.import_module('2005089_aes-defs')
 
 input_key = "BUET CSE20 Batch"
 #input_key = input("Enter the key: ") 
-input_key = defs.key_checker(input_key) 
+input_key = defs.key_length_checker(input_key) 
 print("Key: ")
 input_key_bv = BitVector(textstring=input_key)
-defs.initial_print(input_key_bv) 
-print() 
+defs.print_inf(input_key_bv) 
 
-print("Plaintext: ") 
+
+print("\nPlaintext: ") 
 input_plaintext="We need picnic" 
 input_plaintext_bv1 = BitVector(textstring=input_plaintext)
-defs.initial_print(input_plaintext_bv1)
+defs.print_inf(input_plaintext_bv1)
 # input_plaintext = input("Input the plaintext: ") 
 print("\nAfter padding: ")
-input_plaintext = defs.plaintext_checker(input_plaintext)
+input_plaintext = defs.plaintext_padder(input_plaintext)
 input_plaintext_bv2 = BitVector(rawbytes=input_plaintext)
-defs.initial_print(input_plaintext_bv2) 
+defs.print_inf(input_plaintext_bv2) 
 
 
 key_start = time.time()
 
-rcon = defs.generate_rcon()
+rcon = defs.generate_r_constant()
 
 round_keys = [BitVector(textstring=input_key)]
 for i in range(10):
-    next_key = defs.generate_round_key(round_keys[-1], rcon[i])
+    next_key = defs.generate_r_key(round_keys[-1], rcon[i])
     round_keys.append(next_key)
 
 
@@ -61,11 +61,11 @@ for i in range(num_chunks):
     state_matrix = defs.create_matrix(chunk_bv)
 
     # Initial round key addition
-    state_matrix = defs.add_round_key(state_matrix, defs.create_matrix(round_keys[0]))
+    state_matrix = defs.xor_round_key(state_matrix, defs.create_matrix(round_keys[0]))
 
     # AES rounds
     for round_num in range(10):
-        state_matrix = defs.encryption(state_matrix, defs.create_matrix(round_keys[round_num + 1]), round_num)
+        state_matrix = defs.encrypte(state_matrix, defs.create_matrix(round_keys[round_num + 1]), round_num)
 
     # Flatten matrix to ciphertext block
     cipher_block = defs.create_bitvector(state_matrix)
@@ -79,7 +79,7 @@ encrypt_interval = encrypt_end - encrypt_start
 
 print("\nCiphered Text: ") 
 final_ciphertext = init_iv + ciphertext
-defs.initial_print(final_ciphertext, hex_first=True) 
+defs.print_inf(final_ciphertext, hex_first=True) 
 
 print("\nDeciphered Text:")
 
@@ -102,11 +102,11 @@ for i in range(num_chunks):
     state_matrix = defs.create_matrix(cipher_chunk)
 
     # Final round key first
-    state_matrix = defs.add_round_key(state_matrix, defs.create_matrix(round_keys[10]))
+    state_matrix = defs.xor_round_key(state_matrix, defs.create_matrix(round_keys[10]))
 
     # Inverse AES rounds
     for round_num in range(9, -1, -1):
-        state_matrix = defs.decryption(state_matrix, defs.create_matrix(round_keys[round_num]), round_num)
+        state_matrix = defs.decrypte(state_matrix, defs.create_matrix(round_keys[round_num]), round_num)
 
     # Flatten and XOR with previous IV
     plain_block = defs.create_bitvector(state_matrix) ^ iv
@@ -121,7 +121,7 @@ decrypt_interval = decrypt_end - decrypt_start
 
 
 print("Before Unpadding:")
-defs.initial_print(decrypted_text, hex_first=True)
+defs.print_inf(decrypted_text, hex_first=True)
 
 
 unpadded_bytes = bytes([int(decrypted_text[i:i+8]) for i in range(0, len(decrypted_text), 8)])
@@ -129,7 +129,7 @@ padding_len = unpadded_bytes[-1]
 unpadded_text = unpadded_bytes[:-padding_len].decode("utf-8")
 
 print("\nAfter Unpadding:")
-defs.initial_print(BitVector(textstring=unpadded_text), hex_first=False)
+defs.print_inf(BitVector(textstring=unpadded_text), hex_first=False)
 
 print("\nExecution Time Details:")
 defs.print_time(key_interval, encrypt_interval, decrypt_interval)

@@ -3,7 +3,9 @@ from BitVector import BitVector # type: ignore
 bvd = importlib.import_module('2005089_bitvector-demo')
 modulus = BitVector(bitstring='100011011')
 
-def generate_rcon():
+
+
+def generate_r_constant():
     rcon = []
     rc = 0x01
     for i in range(10):
@@ -15,17 +17,40 @@ def generate_rcon():
         rc &= 0xFF  # Trim to 8 bits
     return rcon 
 
-def key_checker(key): 
+def g_mult(word, rc):
+    shifted = word << 8
+    substituted = substitute_bitvector(shifted)
+    return substituted ^ rc
+
+
+
+def generate_r_key(prev_key, rcon):
+    w0 = prev_key[0:32]
+    w1 = prev_key[32:64]
+    w2 = prev_key[64:96]
+    w3 = prev_key[96:128]
+
+    g = g_mult(w3, rcon)
+
+    w4 = w0 ^ g
+    w5 = w4 ^ w1
+    w6 = w5 ^ w2
+    w7 = w6 ^ w3
+
+    return w4 + w5 + w6 + w7 
+
+
+def key_length_checker(key): 
     if len(key) != 16: 
-        sp = 16- len(key)
-        if sp > 0: 
-            for i in range(0,sp):
-                key += " "
+        sp = 16 - len(key)
+        if sp > 0:
+            random_padding = ''.join(random.choices(string.ascii_letters + string.digits, k=sp))
+            key += random_padding
         else:
-            key = key[0:16]
+            key = key[:16]
     return key
 
-def plaintext_checker(plaintext):
+def plaintext_padder(plaintext):
     byte_data = plaintext.encode('utf-8')
     pad_len = 16 - (len(byte_data) % 16) 
     return byte_data + bytes([pad_len] * pad_len)
@@ -43,11 +68,14 @@ def print_ascii(str):
         print("Non-printable ASCII")
 
 def print_hex(str):
-    hex_str = str.get_bitvector_in_hex()
+    try:
+        hex_str = str.get_bitvector_in_hex()
+    except: 
+        print("Function not available")
     hex_formatted = " ".join(hex_str[i:i+2] for i in range(0, len(hex_str), 2))
     print(hex_formatted)
 
-def initial_print(bv, hex_first: bool = False):
+def print_inf(bv, hex_first: bool = False):
     if hex_first:
         print("In Hex:", end=" ")
         print_hex(bv)
@@ -105,12 +133,8 @@ def inverse_substitute_matrix_bytes(matrix):
         result.append(new_row)
     return result
 
-def g_mult(word, rc):
-    shifted = word << 8
-    substituted = substitute_bitvector(shifted)
-    return substituted ^ rc
 
-def add_round_key(matrix, key_matrix):
+def xor_round_key(matrix, key_matrix):
     return [
         [matrix[i][j] ^ key_matrix[i][j] for j in range(4)]
         for i in range(4)
@@ -136,21 +160,6 @@ def inv_shift_rows(matrix):
         result.append([shifted[8 * j : 8 * (j + 1)] for j in range(4)])
     return result
 
-def generate_round_key(prev_key, rcon):
-    w0 = prev_key[0:32]
-    w1 = prev_key[32:64]
-    w2 = prev_key[64:96]
-    w3 = prev_key[96:128]
-
-    g = g_mult(w3, rcon)
-
-    w4 = w0 ^ g
-    w5 = w4 ^ w1
-    w6 = w5 ^ w2
-    w7 = w6 ^ w3
-
-    return w4 + w5 + w6 + w7 
-
 def mix_column(m1, m2):
     result = []
     for i in range(4):
@@ -163,18 +172,18 @@ def mix_column(m1, m2):
         result.append(row)
     return result 
 
-def encryption(matrix, key_matrix, round_no):
+def encrypte(matrix, key_matrix, round_no):
     new_matrix = substitute_matrix_bytes(matrix)
     new_matrix = shift_rows(new_matrix) 
     if round_no != 9:
         new_matrix = mix_column(new_matrix, bvd.Mixer)
-    new_matrix = add_round_key(new_matrix, key_matrix)
+    new_matrix = xor_round_key(new_matrix, key_matrix)
     return new_matrix
 
-def decryption(matrix, key_matrix, round_no): 
+def decrypte(matrix, key_matrix, round_no): 
     new_matrix = inv_shift_rows(matrix)
     new_matrix = inverse_substitute_matrix_bytes(new_matrix)
-    new_matrix = add_round_key(new_matrix, key_matrix)
+    new_matrix = xor_round_key(new_matrix, key_matrix)
     if round_no != 0:
         new_matrix = mix_column(new_matrix, bvd.InvMixer)
     return new_matrix
