@@ -56,7 +56,7 @@ def plaintext_padder(plaintext):
     return byte_data + bytes([pad_len] * pad_len)
 
 def print_time(kst,et,dt):
-    print("Execution Time Details:") 
+    
     print("Key Schedule Time: ", kst * 1000, " ms")
     print("Encryption Time: ", et * 1000, " ms")
     print("Decryption Time: ", dt * 1000, " ms")
