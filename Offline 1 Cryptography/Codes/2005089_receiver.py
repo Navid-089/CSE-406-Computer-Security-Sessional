@@ -59,7 +59,16 @@ def start_bob():
         iv = block_bv
         plaintext += decrypted_bv.get_bitvector_in_ascii()
 
+    # PKCS#7 Unpadding
+    try:
+        pad_byte = ord(plaintext[-1])
+        if 0 < pad_byte <= 16 and plaintext[-pad_byte:] == chr(pad_byte) * pad_byte:
+            plaintext = plaintext[:-pad_byte]
+    except Exception as e:
+        print("Unpadding error:", e)
+
     print("Decrypted Text:", plaintext)
+
     client.close()
     server.close()
 
