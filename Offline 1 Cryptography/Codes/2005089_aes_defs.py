@@ -1,3 +1,4 @@
+import random, string
 import importlib
 from BitVector import BitVector # type: ignore
 bvd = importlib.import_module('2005089_bitvector-demo')
@@ -40,15 +41,17 @@ def generate_r_key(prev_key, rcon):
     return w4 + w5 + w6 + w7 
 
 
-def key_length_checker(key): 
-    if len(key) != 16: 
-        sp = 16 - len(key)
-        if sp > 0:
-            random_padding = ''.join(random.choices(string.ascii_letters + string.digits, k=sp))
-            key += random_padding
-        else:
-            key = key[:16]
+
+def random_padding_generator(length):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+def key_length_checker(key):
+    if len(key) < 16:
+        key += random_padding_generator(16 - len(key))
+    else:
+        key = key[:16]
     return key
+
 
 def plaintext_padder(plaintext):
     byte_data = plaintext.encode('utf-8')
