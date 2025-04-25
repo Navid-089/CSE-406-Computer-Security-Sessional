@@ -17,8 +17,11 @@ def start_bob():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(("localhost", PORT))
     server.listen(1)
-
+    
     client, _ = server.accept() 
+    print("Bob is listening ...")
+
+    
     file_path = client.recv(1024).decode()
     client.sendall(b"ACK")
     received = json.loads(client.recv(2048).decode())
