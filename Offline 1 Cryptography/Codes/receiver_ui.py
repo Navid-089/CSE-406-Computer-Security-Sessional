@@ -93,7 +93,8 @@ class BobGUI:
             except Exception as e:
                 print("Error:", e)
                 break
-        self.client.close()
+        self.client.close() 
+        
 
 
 if __name__ == "__main__":
