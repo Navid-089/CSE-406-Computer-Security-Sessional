@@ -9,16 +9,18 @@ aes = importlib.import_module("2005089_aes_defs")
 ecdh = importlib.import_module("2005089_ecdh_defs")
 
 PORT = 12345
+file_input = True
+# file_path = "image-min.jpg"
 priv_key_B = Crypto.Util.number.getRandomNBitInteger(128)
-
 
 def start_bob():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(("localhost", PORT))
     server.listen(1)
 
-    client, tmp = server.accept()
-
+    client, _ = server.accept() 
+    file_path = client.recv(1024).decode()
+    client.sendall(b"ACK")
     received = json.loads(client.recv(2048).decode())
     a, b, G, public_key_A, P = received
 
@@ -28,12 +30,13 @@ def start_bob():
     shared_point = ecdh.ecc_scalar_mult(priv_key_B, tuple(public_key_A), a, P)
     shared_key = shared_point[0]
 
-    print(client.recv(1024).decode())
+    client.recv(1024)
     client.sendall("BOB ready to receive".encode())
 
     print("Shared Secret Key:", shared_key)
-
-    data = client.recv(8192).decode()
+    
+    data = client.recv(8192 * 16).decode()
+    print("Decrypting ... ")
     iv_text = data[:16]
     iv = BitVector(textstring=iv_text)
     ciphertext_text = data[16:]
@@ -44,7 +47,7 @@ def start_bob():
     for i in range(10):
         round_keys.append(aes.generate_r_key(round_keys[-1], rcons[i]))
 
-    plaintext = ""
+    decrypted_bv = BitVector(size=0)
     chunks = math.ceil(len(ciphertext_text) / 16)
     for i in range(chunks):
         block = ciphertext_text[i*16:(i+1)*16]
@@ -55,23 +58,25 @@ def start_bob():
         for rnd in reversed(range(10)):
             matrix = aes.decrypte(matrix, aes.create_matrix(round_keys[rnd]), rnd)
 
-        decrypted_bv = aes.create_bitvector(matrix) ^ iv
+        plain_block = aes.create_bitvector(matrix) ^ iv
+        decrypted_bv += plain_block
         iv = block_bv
-        plaintext += decrypted_bv.get_bitvector_in_ascii()
 
-    # PKCS#7 Unpadding
-    try:
-        pad_byte = ord(plaintext[-1])
-        if 0 < pad_byte <= 16 and plaintext[-pad_byte:] == chr(pad_byte) * pad_byte:
-            plaintext = plaintext[:-pad_byte]
-    except Exception as e:
-        print("Unpadding error:", e)
+    decrypted_bytes = bytes([int(decrypted_bv[i:i+8]) for i in range(0, len(decrypted_bv), 8)])
+    pad_value = decrypted_bytes[-1]
+    unpadded_bytes = decrypted_bytes[:-pad_value]
 
-    print("Decrypted Text:", plaintext)
+    if file_input:
+        output_path = "output_" + file_path
+        with open(output_path, "wb") as f:
+            f.write(unpadded_bytes)
+        print(f"\n## Decrypted file written to: {output_path}")
+    else:
+        print("\nDecrypted Text:")
+        aes.print_inf(BitVector(rawbytes=unpadded_bytes), hex_first=False)
 
     client.close()
     server.close()
-
 
 if __name__ == "__main__":
     start_bob()
