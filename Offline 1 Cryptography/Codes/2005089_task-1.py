@@ -7,8 +7,9 @@ bvd = importlib.import_module('2005089_bitvector-demo')
 modulus = BitVector(bitstring='100011011') 
 defs = importlib.import_module('2005089_aes_defs') 
 
-input_key = "BUET CSE20 Batch"
 #input_key = input("Enter the key: ") 
+input_key = "BUET CSE20 Batch"
+
 input_key = defs.key_length_checker(input_key) 
 print("Key: ")
 input_key_bv = BitVector(textstring=input_key)
@@ -16,10 +17,11 @@ defs.print_inf(input_key_bv)
 
 
 print("\nPlaintext: ") 
+# input_plaintext = input("Input the plaintext: ") 
 input_plaintext="We need picnic" 
 input_plaintext_bv1 = BitVector(textstring=input_plaintext)
 defs.print_inf(input_plaintext_bv1)
-# input_plaintext = input("Input the plaintext: ") 
+
 print("\nAfter padding: ")
 input_plaintext = defs.plaintext_padder(input_plaintext)
 input_plaintext_bv2 = BitVector(rawbytes=input_plaintext)

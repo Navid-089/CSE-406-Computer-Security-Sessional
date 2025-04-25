@@ -159,10 +159,10 @@ def mix_column(m1, m2):
     for i in range(4):
         row = []
         for j in range(4):
-            cell = BitVector(size=8)
+            cell_val = BitVector(size=8)
             for k in range(4):
-                cell ^= m1[i][k].gf_multiply_modular(m2[k][j], modulus, 8)
-            row.append(cell)
+                cell_val ^= m1[i][k].gf_multiply_modular(m2[k][j], modulus, 8)
+            row.append(cell_val)
         result.append(row)
     return result 
 
