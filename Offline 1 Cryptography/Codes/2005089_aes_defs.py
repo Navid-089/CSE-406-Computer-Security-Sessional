@@ -181,3 +181,17 @@ def decrypte(matrix, key_matrix, round_no):
     if round_no != 0:
         new_matrix = mix_column(new_matrix, bvd.InvMixer)
     return new_matrix
+
+# def get_print_inf(bv, hex_first: bool = False):
+#     output = ""
+#     if hex_first:
+#         hex_str = bv.get_bitvector_in_hex()
+#         hex_formatted = " ".join(hex_str[i:i+2] for i in range(0, len(hex_str), 2))
+#         ascii_str = bv.get_bitvector_in_ascii()
+#         output += f"In Hex: {hex_formatted}\nIn ASCII: {ascii_str}"
+#     else:
+#         ascii_str = bv.get_bitvector_in_ascii()
+#         hex_str = bv.get_bitvector_in_hex()
+#         hex_formatted = " ".join(hex_str[i:i+2] for i in range(0, len(hex_str), 2))
+#         output += f"In ASCII: {ascii_str}\nIn Hex: {hex_formatted}"
+#     return output
