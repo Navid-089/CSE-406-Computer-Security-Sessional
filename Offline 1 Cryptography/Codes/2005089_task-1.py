@@ -7,7 +7,7 @@ bvd = importlib.import_module('2005089_bitvector-demo')
 modulus = BitVector(bitstring='100011011') 
 defs = importlib.import_module('2005089_aes_defs') 
 
-file_input = True
+file_input = False
 
 #input_key = input("Enter the key: ") 
 input_key = "BUET CSE20 Batch"
@@ -21,7 +21,7 @@ defs.print_inf(input_key_bv)
 print("\nPlaintext: ") 
 # input_plaintext = input("Input the plaintext: ")  
 if file_input:
-    file_path = "plaintext.txt"  # 🔄 change this as needed
+    file_path = "image-min.jpg"  # 🔄 change this as needed
     with open(file_path, "rb") as f:
         input_bytes = f.read()
     input_plaintext = input_bytes.decode('utf-8',errors='ignore')
@@ -30,12 +30,14 @@ else:
     input_plaintext = "We need picnic"
 input_bytes = input_plaintext.encode('utf-8')
 input_plaintext_bv1 = BitVector(textstring=input_plaintext)
-defs.print_inf(input_plaintext_bv1)
-
-print("\nAfter padding: ")
+if not file_input:
+    defs.print_inf(input_plaintext_bv1)
+if not file_input:
+    print("\nAfter padding: ")
 input_plaintext = defs.plaintext_padder(input_plaintext)
 input_plaintext_bv2 = BitVector(rawbytes=input_plaintext)
-defs.print_inf(input_plaintext_bv2) 
+if not file_input:
+    defs.print_inf(input_plaintext_bv2) 
 
 
 key_start = time.time()
@@ -51,39 +53,33 @@ for i in range(10):
 key_end = time.time() 
 key_interval = key_end - key_start
 
-# Prepare IV and encryption setup
+
 encrypt_start = time.time()
 iv = BitVector(intVal=Crypto.Util.number.getRandomNBitInteger(128), size=128) 
 init_iv = iv
+
+#print("\nIV: ")  
+# defs.print_inf(iv, hex_first=True)
 ciphertext = BitVector(size=0)
 
-# Split plaintext into 16-byte chunks
+
 chunk_size = 16
 num_chunks = math.ceil(len(input_plaintext) / chunk_size)
 
 for i in range(num_chunks):
-    # Slice the padded plaintext (raw bytes)
     chunk_bytes = input_plaintext[i * chunk_size : (i + 1) * chunk_size]
     chunk_bv = BitVector(rawbytes=chunk_bytes)
-
-    # XOR with IV (CBC mode)
     chunk_bv ^= iv
-
-    # Convert to state matrix
+    
     state_matrix = defs.create_matrix(chunk_bv)
-
-    # Initial round key addition
     state_matrix = defs.xor_round_key(state_matrix, defs.create_matrix(round_keys[0]))
 
-    # AES rounds
     for round_num in range(10):
         state_matrix = defs.encrypte(state_matrix, defs.create_matrix(round_keys[round_num + 1]), round_num)
 
-    # Flatten matrix to ciphertext block
     cipher_block = defs.create_bitvector(state_matrix)
     ciphertext += cipher_block
-
-    # Update IV for next chunk
+    
     iv = cipher_block 
 
 encrypt_end = time.time()
@@ -91,7 +87,8 @@ encrypt_interval = encrypt_end - encrypt_start
 
 print("\nCiphered Text: ") 
 final_ciphertext = init_iv + ciphertext
-defs.print_inf(final_ciphertext, hex_first=True) 
+if not file_input:
+    defs.print_inf(final_ciphertext, hex_first=True) 
 
 print("\nDeciphered Text:")
 
@@ -131,17 +128,24 @@ for i in range(num_chunks):
 decrypt_end = time.time()
 decrypt_interval = decrypt_end - decrypt_start
 
-
-print("Before Unpadding:")
-defs.print_inf(decrypted_text, hex_first=True)
-
+if not file_input:
+    print("Before Unpadding:")
+    defs.print_inf(decrypted_text, hex_first=True)
 
 unpadded_bytes = bytes([int(decrypted_text[i:i+8]) for i in range(0, len(decrypted_text), 8)])
 padding_len = unpadded_bytes[-1]
-unpadded_text = unpadded_bytes[:-padding_len].decode("utf-8")
+unpadded_text = unpadded_bytes[:-padding_len].decode("utf-8") 
+unpadded_bytes = unpadded_bytes[:-padding_len]
+unpadded_text_bv = BitVector(textstring=unpadded_text)
 
-print("\nAfter Unpadding:")
-defs.print_inf(BitVector(textstring=unpadded_text), hex_first=False)
+if file_input:
+    output_path = "output_" + file_path
+    with open(output_path, "wb") as f:
+        f.write(unpadded_bytes)
+    print(f"\nDecrypted file written to: {output_path}")
+else:
+    print("\nAfter Unpadding:")
+    defs.print_inf(unpadded_text_bv, hex_first=False)
 
 print("\nExecution Time Details:")
 defs.print_time(key_interval, encrypt_interval, decrypt_interval)

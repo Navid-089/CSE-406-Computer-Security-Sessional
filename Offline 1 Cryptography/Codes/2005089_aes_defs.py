@@ -8,17 +8,17 @@ def generate_r_constant():
     rcon = []
     rc = 0x01
     for i in range(10):
-        # Append as 32-bit word (rc || 00 || 00 || 00)
+        # Appending as 32-bit word (rc || 00 || 00 || 00)
         rcon.append(BitVector(intVal=rc, size=8) + BitVector(size=24))
         rc <<= 1
         if rc & 0x100:  # If it overflows 8 bits
             rc ^= 0x11B
         rc &= 0xFF  # Trim to 8 bits
-    return rcon 
+    return rcon  
 
 def g_mult(word, rc):
     shifted = word << 8
-    substituted = substitute_bitvector(shifted)
+    substituted = substitute_bitvector(shifted)  
     return substituted ^ rc
 
 def generate_r_key(prev_key, rcon):
@@ -51,22 +51,20 @@ def plaintext_padder(plaintext):
     pad_len = 16 - (len(byte_data) % 16) 
     return byte_data + bytes([pad_len] * pad_len)
 
-
-
 def print_time(kst,et,dt):
     print("Key Schedule Time: ", kst * 1000, " ms")
     print("Encryption Time: ", et * 1000, " ms")
     print("Decryption Time: ", dt * 1000, " ms")
 
-def print_ascii(str):
+def print_ascii(str_bv):
     try:
-        print(str.get_bitvector_in_ascii())
+        print(str_bv.get_bitvector_in_ascii())
     except:
         print("Non-printable ASCII")
 
-def print_hex(str):
+def print_hex(str_bv):
     try:
-        hex_str = str.get_bitvector_in_hex()
+        hex_str = str_bv.get_bitvector_in_hex()
     except: 
         print("Function not available")
     hex_formatted = " ".join(hex_str[i:i+2] for i in range(0, len(hex_str), 2))
@@ -107,10 +105,10 @@ def print_matrix(matrix):
             print_hex(matrix[i][j]) 
         print()
 
-def substitute_bitvector(matrix): 
+def substitute_bitvector(matrix_bv): 
     result = BitVector(size=0)
-    for i in range(0, matrix.length(),8):
-        byte = matrix[i:i+8] 
+    for i in range(0, matrix_bv.length(),8):
+        byte = matrix_bv[i:i+8] 
         sub_val = bvd.Sbox[byte.intValue()]
         result+= BitVector(intVal=sub_val, size=8)
     return result 
