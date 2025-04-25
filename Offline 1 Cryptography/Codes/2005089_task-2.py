@@ -14,22 +14,24 @@ print("=== Elliptic Curve Diffie-Hellman (ECDH) ===")
 
 for i, key_bits in enumerate(key_sizes):
     print(f"\n--- Key Size: {key_bits} bits ---")
-    for _ in range(5):
+    for j in range(5): 
+        print(f"--- Iteration {j + 1} ---")
         a, b, g, p = ecc.generate_curve_params(key_bits)
 
         # Alice's keys
-        ka = Crypto.Util.number.getRandomNBitInteger(key_bits)
         start = time.time()
+        ka = Crypto.Util.number.getRandomNBitInteger(key_bits)
+        # print(len(str(abs(ka))))
         alice_public = ecc.ecc_scalar_mult(ka, g, a, p)
         alice_times[i] += time.time() - start
         print("Alice's Public Key:", alice_public)
 
         # Bob's keys
-        kb = Crypto.Util.number.getRandomNBitInteger(key_bits)
         start = time.time()
+        kb = Crypto.Util.number.getRandomNBitInteger(key_bits)
         bob_public = ecc.ecc_scalar_mult(kb, g, a, p)
         bob_times[i] += time.time() - start
-        print("Bob's Public Key:", bob_public)
+        print("\nBob's Public Key:", bob_public)
 
         # Shared key
         start = time.time()
@@ -37,8 +39,9 @@ for i, key_bits in enumerate(key_sizes):
         shared_by_bob = ecc.ecc_scalar_mult(kb, alice_public, a, p)
         shared_times[i] += time.time() - start
 
-        print("Shared Key (Alice):", shared_by_alice)
-        print("Shared Key (Bob):  ", shared_by_bob)
+        print("\nShared Key (Alice):", shared_by_alice)
+        print("Shared Key (Bob):  ", shared_by_bob) 
+        print("\n\n")
 
 # Display timing results
 table = PrettyTable()
