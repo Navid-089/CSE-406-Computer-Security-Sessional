@@ -9,7 +9,7 @@ aes = importlib.import_module("2005089_aes_defs")
 ecdh = importlib.import_module("2005089_ecdh_defs")
 
 PORT = 12345
-file_input = True
+file_input = False
 # file_path = "image-min.jpg"
 priv_key_B = Crypto.Util.number.getRandomNBitInteger(128)
 
