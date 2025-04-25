@@ -5,7 +5,7 @@ import Crypto.Util.number
 import importlib 
 from BitVector import * 
 
-aes = importlib.import_module('2005089_aes-defs') 
+aes = importlib.import_module("2005089_aes_defs")
 ecdh = importlib.import_module('2005089_ecdh_defs') 
 
 PORT = 12345 

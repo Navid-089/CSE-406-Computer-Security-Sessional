@@ -7,7 +7,7 @@ from BitVector import *
 import tkinter as tk
 from threading import Thread
 
-aes = importlib.import_module("2005089_aes-defs")
+aes = importlib.import_module("2005089_aes_defs")
 ecdh = importlib.import_module("2005089_ecdh_defs")
 
 PORT = 8000

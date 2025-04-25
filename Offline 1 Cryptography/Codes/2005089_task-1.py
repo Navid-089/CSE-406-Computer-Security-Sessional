@@ -5,7 +5,7 @@ import Crypto.Util.number
 from BitVector import * # type: ignore
 bvd = importlib.import_module('2005089_bitvector-demo')
 modulus = BitVector(bitstring='100011011') 
-defs = importlib.import_module('2005089_aes-defs') 
+aes = importlib.import_module("2005089_aes_defs")
 
 input_key = "BUET CSE20 Batch"
 #input_key = input("Enter the key: ") 
