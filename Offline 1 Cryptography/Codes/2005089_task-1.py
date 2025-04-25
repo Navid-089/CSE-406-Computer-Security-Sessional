@@ -58,8 +58,8 @@ key_interval = key_end - key_start
 # Encryption
 encrypt_start = time.time()
 iv = BitVector(intVal=Crypto.Util.number.getRandomNBitInteger(128), size=128) 
-print("\nIV:")
-defs.print_inf(iv, hex_first=True)
+# print("\nIV:")
+# defs.print_inf(iv, hex_first=True)
 init_iv = iv.deep_copy()
 ciphertext = BitVector(size=0)
 
