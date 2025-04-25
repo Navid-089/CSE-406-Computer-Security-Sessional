@@ -48,8 +48,3 @@ def ecc_scalar_mult(k, point, a, p):
         if bit == "1" and result != point:
             result = ecc_point_add(result, point, p)
     return result
-
-
-
-
-
