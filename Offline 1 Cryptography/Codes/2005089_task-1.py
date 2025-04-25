@@ -29,15 +29,21 @@ if file_input:
 else:
     # input_text = input("Enter plaintext: ")
     # input_bytes = input_text.encode('utf-8')
-    input_bytes = b"We need picnic"
+    input_bytes = b"We need picnicccccc"
 
-# Padding
+# Padding   
+input_bytes_bv = BitVector(rawbytes=input_bytes) 
+if not file_input:
+    print("\nPlain Text:") 
+    defs.print_inf(input_bytes_bv)
+
 pad_len = 16 - (len(input_bytes) % 16)
-input_bytes += bytes([pad_len] * pad_len)
+input_bytes += bytes([pad_len] * pad_len) 
+
 input_plaintext_bv = BitVector(rawbytes=input_bytes)
 
 if not file_input:
-    print("\nPlaintext:")
+    print("\nAfter Padding:")
     defs.print_inf(input_plaintext_bv)
 
 # Key Expansion
@@ -51,7 +57,9 @@ key_interval = key_end - key_start
 
 # Encryption
 encrypt_start = time.time()
-iv = BitVector(intVal=Crypto.Util.number.getRandomNBitInteger(128), size=128)
+iv = BitVector(intVal=Crypto.Util.number.getRandomNBitInteger(128), size=128) 
+print("\nIV:")
+defs.print_inf(iv, hex_first=True)
 init_iv = iv.deep_copy()
 ciphertext = BitVector(size=0)
 
@@ -101,7 +109,11 @@ decrypt_end = time.time()
 decrypt_interval = decrypt_end - decrypt_start
 
 # Unpadding
+print("\nBefore Unpadding:") 
+defs.print_inf(decrypted_bv, hex_first=True)
+
 decrypted_bytes = bytes([int(decrypted_bv[i:i+8]) for i in range(0, len(decrypted_bv), 8)])
+
 pad_value = decrypted_bytes[-1]
 unpadded_bytes = decrypted_bytes[:-pad_value]
 
@@ -111,7 +123,7 @@ if file_input:
         f.write(unpadded_bytes)
     print(f"\n!! Decrypted file written to: {output_path}")
 else:
-    print("\nDecrypted Text:")
+    print("\nAfter Unpadding:")
     defs.print_inf(BitVector(rawbytes=unpadded_bytes), hex_first=False)
 
 # Timing
