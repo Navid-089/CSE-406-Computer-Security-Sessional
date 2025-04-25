@@ -7,6 +7,8 @@ bvd = importlib.import_module('2005089_bitvector-demo')
 modulus = BitVector(bitstring='100011011') 
 defs = importlib.import_module('2005089_aes_defs') 
 
+file_input = True
+
 #input_key = input("Enter the key: ") 
 input_key = "BUET CSE20 Batch"
 
@@ -17,8 +19,16 @@ defs.print_inf(input_key_bv)
 
 
 print("\nPlaintext: ") 
-# input_plaintext = input("Input the plaintext: ") 
-input_plaintext="We need picnic" 
+# input_plaintext = input("Input the plaintext: ")  
+if file_input:
+    file_path = "plaintext.txt"  # 🔄 change this as needed
+    with open(file_path, "rb") as f:
+        input_bytes = f.read()
+    input_plaintext = input_bytes.decode('utf-8',errors='ignore')
+else:
+    # input_plaintext = input("Input the plaintext: ")  
+    input_plaintext = "We need picnic"
+input_bytes = input_plaintext.encode('utf-8')
 input_plaintext_bv1 = BitVector(textstring=input_plaintext)
 defs.print_inf(input_plaintext_bv1)
 
