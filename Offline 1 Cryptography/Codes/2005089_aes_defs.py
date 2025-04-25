@@ -2,9 +2,7 @@ import random, string
 import importlib
 from BitVector import BitVector # type: ignore
 bvd = importlib.import_module('2005089_bitvector-demo')
-modulus = BitVector(bitstring='100011011')
-
-
+modulus = BitVector(bitstring='100011011')  # x^7 + x^4 + x^3 + x + 1
 
 def generate_r_constant():
     rcon = []
@@ -23,8 +21,6 @@ def g_mult(word, rc):
     substituted = substitute_bitvector(shifted)
     return substituted ^ rc
 
-
-
 def generate_r_key(prev_key, rcon):
     w0 = prev_key[0:32]
     w1 = prev_key[32:64]
@@ -40,8 +36,6 @@ def generate_r_key(prev_key, rcon):
 
     return w4 + w5 + w6 + w7 
 
-
-
 def random_padding_generator(length):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
@@ -52,14 +46,12 @@ def key_length_checker(key):
         key = key[:16]
     return key
 
-
 def plaintext_padder(plaintext):
     byte_data = plaintext.encode('utf-8')
     pad_len = 16 - (len(byte_data) % 16) 
     return byte_data + bytes([pad_len] * pad_len)
 
 def print_time(kst,et,dt):
-    
     print("Key Schedule Time: ", kst * 1000, " ms")
     print("Encryption Time: ", et * 1000, " ms")
     print("Decryption Time: ", dt * 1000, " ms")
@@ -106,7 +98,6 @@ def create_bitvector(matrix):
         for j in range(4):
             result += matrix[j][i]
     return result
-
 
 def print_matrix(matrix):
     for i in range(4):
