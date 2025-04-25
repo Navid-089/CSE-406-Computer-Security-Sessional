@@ -12,7 +12,7 @@ defs = importlib.import_module('2005089_aes_defs')
 modulus = BitVector(bitstring='100011011') 
 
 # Toggle file mode
-file_input = False
+file_input = True
 file_path = "image-min.jpg"  # Your file name here
 
 # Key setup
@@ -109,8 +109,9 @@ decrypt_end = time.time()
 decrypt_interval = decrypt_end - decrypt_start
 
 # Unpadding
-print("\nBefore Unpadding:") 
-defs.print_inf(decrypted_bv, hex_first=True)
+if not file_input:
+    print("\nBefore Unpadding:") 
+    defs.print_inf(decrypted_bv, hex_first=True)
 
 decrypted_bytes = bytes([int(decrypted_bv[i:i+8]) for i in range(0, len(decrypted_bv), 8)])
 
