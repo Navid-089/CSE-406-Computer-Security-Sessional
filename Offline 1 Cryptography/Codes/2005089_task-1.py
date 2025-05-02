@@ -11,7 +11,7 @@ modulus = BitVector(bitstring='100011011')
 
 # File mode
 file_input = True
-file_path = "image-min.jpg"  # Your file name here
+file_path = "2005089_image-min.jpg"  # Your file name here
 
 # Key setup
 input_key = "BUET CSE20 Batch"

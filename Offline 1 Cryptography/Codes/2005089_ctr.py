@@ -9,7 +9,7 @@ bitvector_demo = importlib.import_module("2005089_bitvector-demo")
 defs = importlib.import_module("2005089_aes_defs")
 
 file_input = True
-file_path = "image-min.jpg"  
+file_path = "2005089_image-min.jpg"  
 
 def encryption_thread(chunk_idx, block, iv, round_keys, output):
     counter_bv = iv.deep_copy()

@@ -11,7 +11,7 @@ ecdh = importlib.import_module('2005089_ecdh_defs')
 
 PORT = 12345
 file_input = False
-file_path = "image-min.jpg"
+file_path = "2005089_image-min.jpg"
 
 # ECC Setup
 a, b, G, P = ecdh.generate_curve_params(128)
@@ -66,12 +66,17 @@ def start_alice():
     s.recv(1024)  # "BOB ready"
 
     # === Encrypt File Content ===
+    print("Type 'kill' to exit")
     while True:
         if file_input:
             with open(file_path, "rb") as f:
                 input_bytes = f.read()
         else:
+            
             input_text = input("Enter plaintext: ")
+            if(input_text == "kill"):
+                break
+
             input_bytes = input_text.encode('utf-8')
         if not file_input:
             aes.print_inf(BitVector(textstring = input_text))

@@ -65,6 +65,8 @@ def start_bob():
     # print("Shared Secret Key:", shared_key)
     while True:
         data = client.recv(8192 * 16).decode()
+        print("Received data: ", end="") 
+        aes.print_inf(BitVector(textstring=data), hex_first=False)
         if file_input:
             print("Decrypting ... ")
         iv_text = data[:16]
