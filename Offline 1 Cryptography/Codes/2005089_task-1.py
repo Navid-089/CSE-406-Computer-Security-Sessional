@@ -12,7 +12,7 @@ defs = importlib.import_module('2005089_aes_defs')
 modulus = BitVector(bitstring='100011011') 
 
 # Toggle file mode
-file_input = True
+file_input = False
 file_path = "image-min.jpg"  # Your file name here
 
 # Key setup
