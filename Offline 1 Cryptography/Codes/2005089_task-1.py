@@ -1,18 +1,16 @@
 import importlib
 import time 
 import math
-import Crypto.Util.number
+import Crypto.Util.number # type: ignore
 from BitVector import *  # type: ignore
 
-# Import modules
+
 bvd = importlib.import_module('2005089_bitvector-demo')
 defs = importlib.import_module('2005089_aes_defs')
-
-# AES polynomial
 modulus = BitVector(bitstring='100011011') 
 
-# Toggle file mode
-file_input = False
+# File mode
+file_input = True
 file_path = "image-min.jpg"  # Your file name here
 
 # Key setup
@@ -29,7 +27,7 @@ if file_input:
 else:
     # input_text = input("Enter plaintext: ")
     # input_bytes = input_text.encode('utf-8')
-    input_bytes = b"We need picnicccccc"
+    input_bytes = b"We need picnicc"
 
 # Padding   
 input_bytes_bv = BitVector(rawbytes=input_bytes) 
@@ -58,8 +56,6 @@ key_interval = key_end - key_start
 # Encryption
 encrypt_start = time.time()
 iv = BitVector(intVal=Crypto.Util.number.getRandomNBitInteger(128), size=128) 
-# print("\nIV:")
-# defs.print_inf(iv, hex_first=True)
 init_iv = iv.deep_copy()
 ciphertext = BitVector(size=0)
 

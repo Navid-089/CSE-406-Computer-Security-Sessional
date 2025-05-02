@@ -2,8 +2,12 @@ import random, string
 import importlib
 from BitVector import BitVector # type: ignore
 bvd = importlib.import_module('2005089_bitvector-demo')
-modulus = BitVector(bitstring='100011011')  # x^7 + x^4 + x^3 + x + 1
+modulus = BitVector(bitstring='100011011')  # x^8 + x^4 + x^3 + x + 1
 
+# The value of rc_i is computed as follows:
+#   rc_1 = 0x01
+#   rc_i = 2 * rc_{i-1}           if rc_{i-1} < 0x80
+#        = (2 * rc_{i-1}) XOR 0x1B if rc_{i-1} >= 0x80
 def generate_r_constant():
     rcon = []
     rc = 0x01
@@ -15,6 +19,10 @@ def generate_r_constant():
             rc ^= 0x11B
         rc &= 0xFF  # Trim to 8 bits
     return rcon  
+
+# g_mult: 1. Circular byte left shifr 
+#         2. Substitute the byte with S-box
+#         3. XOR with round constant
 
 def g_mult(word, rc):
     shifted = word << 8
@@ -38,7 +46,8 @@ def generate_r_key(prev_key, rcon):
 
 def random_padding_generator(length):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
+# key if less than 16 bytes: pad with random characters
+# key if more than 16 bytes: truncate to first 16 bytes
 def key_length_checker(key):
     if len(key) < 16:
         key += random_padding_generator(16 - len(key))
@@ -46,6 +55,7 @@ def key_length_checker(key):
         key = key[:16]
     return key
 
+# Padding the plaintext to a multiple of 16 bytes using PKCS#7 padding
 def plaintext_padder(plaintext):
     byte_data = plaintext.encode('utf-8')
     pad_len = 16 - (len(byte_data) % 16) 
@@ -69,6 +79,7 @@ def print_hex(str_bv):
         print("Function not available")
     hex_formatted = " ".join(hex_str[i:i+2] for i in range(0, len(hex_str), 2))
     print(hex_formatted)
+    print()
 
 def print_inf(bv, hex_first: bool = False):
     if hex_first:
@@ -76,11 +87,13 @@ def print_inf(bv, hex_first: bool = False):
         print_hex(bv)
         print("In ASCII:", end=" ")
         print_ascii(bv)
+        print()
     else:
         print("In ASCII:", end=" ")
         print_ascii(bv)
         print("In Hex:", end=" ")
         print_hex(bv)
+        print()
 
 def create_matrix(bv):
     matrix = []
@@ -105,6 +118,7 @@ def print_matrix(matrix):
             print_hex(matrix[i][j]) 
         print()
 
+# Substitution bitVector using S-box
 def substitute_bitvector(matrix_bv): 
     result = BitVector(size=0)
     for i in range(0, matrix_bv.length(),8):
@@ -112,28 +126,27 @@ def substitute_bitvector(matrix_bv):
         sub_val = bvd.Sbox[byte.intValue()]
         result+= BitVector(intVal=sub_val, size=8)
     return result 
-
+#Substitution matrix using S-box
 def substitute_matrix_bytes(matrix):
     result = []
     for row in matrix:
         new_row = [BitVector(intVal=bvd.Sbox[cell.intValue()], size=8) for cell in row]
         result.append(new_row)
     return result
-
+#Substitution matrix using inverse S-box
 def inverse_substitute_matrix_bytes(matrix):
     result = []
     for row in matrix:
         new_row = [BitVector(intVal=bvd.InvSbox[cell.intValue()], size=8) for cell in row]
         result.append(new_row)
     return result
-
-
+# Adding round key to the state matrix
 def xor_round_key(matrix, key_matrix):
     return [
         [matrix[i][j] ^ key_matrix[i][j] for j in range(4)]
         for i in range(4)
     ]
-
+# Left Shift rows by the amount of the row index 
 def shift_rows(matrix):
     result = []
     for i in range(4):
@@ -143,7 +156,7 @@ def shift_rows(matrix):
         shifted = row << (8 * i)
         result.append([shifted[8 * j:8 * (j + 1)] for j in range(4)])
     return result 
-
+# Right Shift rows by the amount of the row index
 def inv_shift_rows(matrix):
     result = []
     for i in range(4):
@@ -153,7 +166,7 @@ def inv_shift_rows(matrix):
         shifted = row >> (8 * i)
         result.append([shifted[8 * j : 8 * (j + 1)] for j in range(4)])
     return result
-
+# Mix columns using Galois field multiplication
 def mix_column(m1, m2):
     result = []
     for i in range(4):
@@ -181,17 +194,3 @@ def decrypte(matrix, key_matrix, round_no):
     if round_no != 0:
         new_matrix = mix_column(new_matrix, bvd.InvMixer)
     return new_matrix
-
-# def get_print_inf(bv, hex_first: bool = False):
-#     output = ""
-#     if hex_first:
-#         hex_str = bv.get_bitvector_in_hex()
-#         hex_formatted = " ".join(hex_str[i:i+2] for i in range(0, len(hex_str), 2))
-#         ascii_str = bv.get_bitvector_in_ascii()
-#         output += f"In Hex: {hex_formatted}\nIn ASCII: {ascii_str}"
-#     else:
-#         ascii_str = bv.get_bitvector_in_ascii()
-#         hex_str = bv.get_bitvector_in_hex()
-#         hex_formatted = " ".join(hex_str[i:i+2] for i in range(0, len(hex_str), 2))
-#         output += f"In ASCII: {ascii_str}\nIn Hex: {hex_formatted}"
-#     return output

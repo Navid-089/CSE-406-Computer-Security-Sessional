@@ -1,15 +1,15 @@
 from BitVector import * 
 import importlib
 import math
-import Crypto.Util.number
+import Crypto.Util.number # type: ignore
 import threading
 import time
 
 bitvector_demo = importlib.import_module("2005089_bitvector-demo")
 defs = importlib.import_module("2005089_aes_defs")
 
-file_input = False
-file_path = "image-min.jpg"  # Change to your target file
+file_input = True
+file_path = "image-min.jpg"  
 
 def encryption_thread(chunk_idx, block, iv, round_keys, output):
     counter_bv = iv.deep_copy()
@@ -41,11 +41,15 @@ def main():
     else:
         input_bytes = b"We need picnicccWe need picniccc"
 
+    if not file_input:
+        print("\nPlain Text:")
+        defs.print_inf(BitVector(rawbytes=input_bytes))
+
     pad_len = 16 - (len(input_bytes) % 16)
     input_bytes += bytes([pad_len] * pad_len)
 
     if not file_input:
-        print("\nPlain Text:")
+        print("\nPlain Text (After padding):")
         defs.print_inf(BitVector(rawbytes=input_bytes))
 
     num_chunks = math.ceil(len(input_bytes) / 16)
@@ -74,8 +78,8 @@ def main():
         enc_threads.append(t)
         iv_for_increment = BitVector(intVal=(iv_for_increment.intValue() + 1), size=128)
 
-    for t in enc_threads: t.start()
-    for t in enc_threads: t.join()
+    [t.start() for t in enc_threads]
+    [t.join() for t in enc_threads]
 
     ciphertext = BitVector(size=0)
     for chunk in enc_output:
@@ -86,7 +90,7 @@ def main():
     encryption_time = encrypt_end - encrypt_start
 
     if not file_input:
-        print("\nEncrypted (hex):")
+        print("\nEncrypted:")
         defs.print_inf(final_ciphertext, hex_first=True)
 
     # === DECRYPTION ===
@@ -104,8 +108,8 @@ def main():
         dec_threads.append(t)
         iv = BitVector(intVal=(iv.intValue() + 1), size=128)
 
-    for t in dec_threads: t.start()
-    for t in dec_threads: t.join()
+    [t.start() for t in dec_threads]
+    [t.join() for t in dec_threads]
 
     decrypted_bv = BitVector(size=0)
     for chunk in dec_output:
