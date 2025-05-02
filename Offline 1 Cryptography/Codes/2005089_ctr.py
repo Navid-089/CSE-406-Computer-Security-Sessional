@@ -48,7 +48,7 @@ def main():
 
     # Encryption
     A = Crypto.Util.number.getRandomNBitInteger(128)
-    A = 232833907129507839396865044293246588104
+    # A = 232833907129507839396865044293246588104
     IV = BitVector(intVal=A, size=128)
     enc_output = [None] * num_chunks
     threads = []
