@@ -3,11 +3,12 @@ import importlib
 import math
 import Crypto.Util.number
 import threading
+import time
 
 bitvector_demo = importlib.import_module("2005089_bitvector-demo")
 defs = importlib.import_module("2005089_aes_defs")
 
-file_input = True
+file_input = False
 file_path = "image-min.jpg"  # Change to your target file
 
 def encryption_thread(chunk_idx, block, iv, round_keys, output):
@@ -49,24 +50,29 @@ def main():
 
     num_chunks = math.ceil(len(input_bytes) / 16)
 
-    # Key Expansion
+    # === Key Expansion with timing ===
+    key_start = time.time()
     rcons = defs.generate_r_constant()
     round_keys = [BitVector(textstring=input_key)]
     for i in range(10):
         round_keys.append(defs.generate_r_key(round_keys[-1], rcons[i]))
+    key_end = time.time()
+    key_schedule_time = key_end - key_start
 
-    # Encryption
-    A = Crypto.Util.number.getRandomNBitInteger(128)
-    A = 232833907129507839396865044293246588104
-    IV = BitVector(intVal=A, size=128)
+    # === ENCRYPTION ===
+    encrypt_start = time.time()
+    randomNumber = Crypto.Util.number.getRandomNBitInteger(128)
+    iv = BitVector(intVal=randomNumber, size=128)
+    iv_for_increment = iv.deep_copy()
+
     enc_output = [None] * num_chunks
     enc_threads = []
 
     for i in range(num_chunks):
-        block = input_bytes[i*16:(i+1)*16]
-        t = threading.Thread(target=encryption_thread, args=(i, block, IV, round_keys, enc_output))
+        block = input_bytes[i * 16:(i + 1) * 16]
+        t = threading.Thread(target=encryption_thread, args=(i, block, iv_for_increment, round_keys, enc_output))
         enc_threads.append(t)
-        IV = BitVector(intVal=(IV.intValue() + 1), size=128)
+        iv_for_increment = BitVector(intVal=(iv_for_increment.intValue() + 1), size=128)
 
     for t in enc_threads: t.start()
     for t in enc_threads: t.join()
@@ -75,20 +81,28 @@ def main():
     for chunk in enc_output:
         ciphertext += chunk
 
+    final_ciphertext = iv + ciphertext
+    encrypt_end = time.time()
+    encryption_time = encrypt_end - encrypt_start
+
     if not file_input:
         print("\nEncrypted (hex):")
-        defs.print_inf(ciphertext, hex_first=True)
+        defs.print_inf(final_ciphertext, hex_first=True)
 
-    # Decryption
-    IV = BitVector(intVal=A, size=128)
+    # === DECRYPTION ===
+    decrypt_start = time.time()
+    rx_iv = final_ciphertext[:128]
+    rx_ciphertext = final_ciphertext[128:]
+    iv = rx_iv.deep_copy()
+
     dec_output = [None] * num_chunks
     dec_threads = []
 
     for i in range(num_chunks):
-        enc_chunk = enc_output[i]
-        t = threading.Thread(target=decryption_thread, args=(i, enc_chunk, IV, round_keys, dec_output))
+        enc_chunk = rx_ciphertext[i * 128:(i + 1) * 128]
+        t = threading.Thread(target=decryption_thread, args=(i, enc_chunk, iv, round_keys, dec_output))
         dec_threads.append(t)
-        IV = BitVector(intVal=(IV.intValue() + 1), size=128)
+        iv = BitVector(intVal=(iv.intValue() + 1), size=128)
 
     for t in dec_threads: t.start()
     for t in dec_threads: t.join()
@@ -100,6 +114,8 @@ def main():
     decrypted_bytes = bytes([int(decrypted_bv[i:i+8]) for i in range(0, len(decrypted_bv), 8)])
     pad_value = decrypted_bytes[-1]
     unpadded_bytes = decrypted_bytes[:-pad_value]
+    decrypt_end = time.time()
+    decryption_time = decrypt_end - decrypt_start
 
     if file_input:
         output_path = "output_" + file_path
@@ -109,6 +125,10 @@ def main():
     else:
         print("\nDecrypted Text:")
         print(unpadded_bytes.decode('utf-8', errors='ignore'))
+
+    # === Print timing ===
+    print("\nExecution Time Details:")
+    defs.print_time(key_schedule_time, encryption_time, decryption_time)
 
 if __name__ == "__main__":
     main()
