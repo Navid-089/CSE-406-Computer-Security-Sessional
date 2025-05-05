@@ -20,7 +20,7 @@ def generate_r_constant():
         rc &= 0xFF  # Trim to 8 bits
     return rcon  
 
-# g_mult: 1. Circular byte left shifr 
+# g_mult: 1. Circular byte left shift
 #         2. Substitute the byte with S-box
 #         3. XOR with round constant
 
