@@ -62,6 +62,62 @@ function app() {
         * 4. Fetch the heatmap from the backend and add it to the local collection.
         * 5. Handle errors and update the status.
         */
+
+       this.isCollecting = true; 
+       this.status = "Collecting trace data..."; 
+       this.statusIsError = false;
+       this.showingTraces = false; 
+
+       try {
+         const worker = new Worker("worker.js"); 
+
+         const trace = await new Promise((resolve) => { 
+          worker.onmessage = (e) => resolve(e.data);
+          worker.postMessage("start");
+         });
+
+         this.traceData.push(trace); // Add trace data to local collection 
+
+         const response = await fetch("/traces", {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+           },
+           body: JSON.stringify({ trace }),
+         });
+
+          if (!response.ok) {
+            throw new Error("Failed to send trace data to the server");
+          }
+
+          const result = await response.json(); // parse server response
+          const imageUrl = `/static/${result.file}`;
+          
+          // Store heatmap + metadata
+          this.heatmaps.push({
+            src: imageUrl,
+            min: result.min,
+            max: result.max,
+            range: result.range,
+            samples: result.samples
+          });
+          
+
+         
+
+          this.status = "Trace data collection complete!"; 
+          this.showingTraces = true; // Show trace data in the UI
+
+          worker.terminate(); // Terminate the worker
+        }
+
+       catch (error) {
+         console.error("Error collecting trace data:", error);
+         this.status = `Error: ${error.message}`;
+         this.statusIsError = true;
+       } finally {
+        this.isCollecting = false;
+       }
     },
 
     // Download the trace data as JSON (array of arrays format for ML)
