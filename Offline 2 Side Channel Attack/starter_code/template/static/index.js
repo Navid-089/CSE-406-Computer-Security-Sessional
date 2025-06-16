@@ -143,7 +143,8 @@ function app() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "traces.json";
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        a.download = `traces_${timestamp}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
