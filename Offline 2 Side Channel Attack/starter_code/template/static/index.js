@@ -67,6 +67,7 @@ function app() {
        this.status = "Collecting trace data..."; 
        this.statusIsError = false;
        this.showingTraces = false; 
+       this.latencyResults = null; // Reset latency results
 
        try {
          const worker = new Worker("worker.js"); 
@@ -91,7 +92,7 @@ function app() {
           }
 
           const result = await response.json(); // parse server response
-          const imageUrl = `/static/${result.file}`;
+          const imageUrl = `/static/heatmaps/${result.file}`;
           
           // Store heatmap + metadata
           this.heatmaps.push({
@@ -127,7 +128,29 @@ function app() {
         * 1. Fetch the latest data from the backend API.
         * 2. Create a download file with the trace data in JSON format.
         * 3. Handle errors and update the status.
+        * 
         */
+
+       try {
+        const response = await fetch("/api/get_results");
+        if (!response.ok) throw new Error("Failed to download traces");
+    
+        const result = await response.json();
+        const blob = new Blob([JSON.stringify(result.traces, null, 2)], {
+          type: "application/json",
+        });
+    
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "traces.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Download failed:", error);
+      }
     },
 
     // Clear all results from the server
@@ -138,6 +161,23 @@ function app() {
        * 2. Clear local copies of trace data and heatmaps.
        * 3. Handle errors and update the status.
        */
+      console.log("Clearing results...\n");
+    
+      try {
+        const response = await fetch("/api/clear_results", {
+          method: "POST",
+        });
+    
+        if (!response.ok) throw new Error("Failed to clear results");
+
+       
+        this.traceData = [];
+        this.heatmaps = [];
+        this.showingTraces = false;
+        this.status = "Results cleared.";
+      } catch (error) {
+        console.error("Clearing failed:", error);
+      }
     },
   };
 }

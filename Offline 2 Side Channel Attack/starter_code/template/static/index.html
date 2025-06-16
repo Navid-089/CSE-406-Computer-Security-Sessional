@@ -20,6 +20,7 @@
             justify-content: center;
             gap: 1rem;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
         
         .results-table {
@@ -35,9 +36,9 @@
         <div class="button-group">
             <button @click="collectLatencyData()" :disabled="isCollecting">Collect Latency Data</button>
             <button @click="collectTraceData()" :disabled="isCollecting">Collect Trace Data</button>
-            <!--Implement Collect Trace button. It should call collectTraceData(). -->
-            <!--Implement Download Traces button. It should call downloadTraces(). -->
-            <!--Implement Clear Results button. It should call clearResults(). -->
+            <button @click="downloadTraces()" :disabled="isCollecting">Download Traces</button>
+            <button type="button" @click="clearResults()" :disabled="isCollecting">Clear All Results</button>
+
         </div>
         
         <div x-show="status" role="alert" x-text="status" 
@@ -68,7 +69,6 @@
         </template>
         
         <!-- Heatmap gallery for all traces -->
-
         <template x-if="heatmaps.length > 0 && showingTraces">
             <div>
             <h3>Trace Heatmaps</h3>
@@ -93,7 +93,7 @@
     <script>
         // Initialize app by fetching existing results when page loads
         document.addEventListener('alpine:init', () => {
-            window.Alpine.store('app').fetchResults();
+            window.Alpine.store('app').fetchResults?.();
         });
     </script>
 </body>

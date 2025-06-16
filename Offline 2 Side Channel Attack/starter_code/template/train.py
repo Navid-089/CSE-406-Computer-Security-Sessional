@@ -21,6 +21,39 @@ HIDDEN_SIZE = 128
 # Ensure models directory exists
 os.makedirs(MODELS_DIR, exist_ok=True)
 
+class TraceDataset(Dataset):
+    def __init__(self, dataset_path, input_size):
+        with open(dataset_path, 'r') as f:
+            raw_data = json.load(f)
+
+        self.samples = []
+        self.labels = []
+        self.website_to_index = {}
+        self.index_to_website = {}
+        
+        for entry in raw_data:
+            trace = entry["trace_data"][:input_size]  # Truncate
+            if len(trace) < input_size:
+                trace = trace + [0] * (input_size - len(trace))  # Pad
+
+            website = entry["website"]
+            if website not in self.website_to_index:
+                idx = len(self.website_to_index)
+                self.website_to_index[website] = idx
+                self.index_to_website[idx] = website
+
+            self.samples.append(trace)
+            self.labels.append(self.website_to_index[website])
+
+        self.samples = torch.tensor(self.samples, dtype=torch.float32)
+        self.labels = torch.tensor(self.labels, dtype=torch.long)
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        return self.samples[idx], self.labels[idx]
+
 
 class FingerprintClassifier(nn.Module):
     """Basic neural network model for website fingerprinting classification."""
@@ -263,6 +296,40 @@ def main():
     5. Train and evaluate each model
     6. Print comparison of results
     """
+
+    dataset = TraceDataset(DATASET_PATH, INPUT_SIZE)
+    num_classes = len(dataset.website_to_index)
+    print(f"Loaded {len(dataset)} samples across {num_classes} websites.")
+
+    splitter = StratifiedShuffleSplit(n_splits=1, test_size=1-TRAIN_SPLIT, random_state=42) 
+    labels_array = dataset.labels.cpu().numpy()  # Convert labels to numpy array for stratified split
+
+    for train_idx, test_idx in splitter.split(dataset.samples, labels_array):
+        train_dataset = Subset(dataset, train_idx)
+        test_dataset = Subset(dataset, test_idx)
+
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+    models = {
+        "simple_cnn": FingerprintClassifier(INPUT_SIZE, HIDDEN_SIZE, num_classes),
+        "complex_cnn": ComplexFingerprintClassifier(INPUT_SIZE, HIDDEN_SIZE, num_classes)
+
+    }
+
+    for name, model in models.items():
+        print(f"\nTraining model: {name}")
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+        model_path = os.path.join(MODELS_DIR, f"{name}.pt")
+
+        best_acc = train(model, train_loader, test_loader, criterion, optimizer, EPOCHS, model_path)
+
+        model.load_state_dict(torch.load(model_path))
+        _, _ = evaluate(model, test_loader, [
+            dataset.index_to_website[i] for i in range(num_classes)
+        ])
+        print(f"Best Test Accuracy for {name}: {best_acc:.4f}")
 
 if __name__ == "__main__":
     main()

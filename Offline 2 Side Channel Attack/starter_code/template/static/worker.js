@@ -43,6 +43,6 @@ self.addEventListener('message', function(e) {
 
     if(e.data === "start") {
         const result = sweep(P); 
-        this.self.postMessage
+        this.self.postMessage(result);
     }
 });

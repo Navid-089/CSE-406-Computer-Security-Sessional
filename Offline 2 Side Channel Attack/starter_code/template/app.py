@@ -6,9 +6,11 @@ from PIL import Image
 from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use("Agg")  # Use a backend that doesn't require a display
 
-# additional imports
+HEATMAP_DIR = os.path.join("static", "heatmaps")
+os.makedirs(HEATMAP_DIR, exist_ok=True)
+
+matplotlib.use("Agg") 
 
 app = Flask(__name__)
 
@@ -23,24 +25,6 @@ def index():
 def static_files(path):
     return send_from_directory('static', path)
 
-@app.route('/collect_trace', methods=['POST'])
-def collect_trace():
-    """ 
-    Implement the collect_trace endpoint to receive trace data from the frontend and generate a heatmap.
-    1. Receive trace data from the frontend as JSON
-    2. Generate a heatmap using matplotlib
-    3. Store the heatmap and trace data in the backend temporarily
-    4. Return the heatmap image and optionally other statistics to the frontend
-    """
-
-@app.route('/api/clear_results', methods=['POST'])
-def clear_results():
-    """ 
-    Implment a clear results endpoint to reset stored data.
-    1. Clear stored traces and heatmaps
-    2. Return success/error message
-    """
-# Additional endpoints can be implemented here as needed.
 @app.route("/traces", methods=["POST"])
 def receive_traces():
     data = request.get_json()
@@ -48,10 +32,12 @@ def receive_traces():
         return jsonify({"error": "No valid trace data received"}), 400
 
     trace = data["trace"]
+    stored_traces.append(trace)  
 
-    # Save trace data
+    # Save to file
     with open("trace.json", "w") as f:
         json.dump(trace, f)
+
     # Convert to array for stats
     raw_array = np.array(trace)
     min_val = float(np.min(raw_array))
@@ -65,7 +51,7 @@ def receive_traces():
     # Remove trailing zeros (blue regions)
     nonzero_indices = np.where(norm_data > 0)[0]
     if len(nonzero_indices) == 0:
-        trimmed = norm_data  # fallback: use whole
+        trimmed = norm_data
     else:
         start, end = nonzero_indices[0], nonzero_indices[-1] + 1
         trimmed = norm_data[start:end]
@@ -76,22 +62,21 @@ def receive_traces():
         padded[:len(trimmed)] = trimmed
         trimmed = padded
 
-    # Reshape for horizontal heatmap
-    reshaped = trimmed.reshape((1, -1))  # 1 row, wide image
+    reshaped = trimmed.reshape((1, -1))
 
     # Save colorful heatmap
     filename = f"heatmap_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-    filepath = os.path.join("static", filename)
+    filepath = os.path.join(HEATMAP_DIR, filename)
 
     plt.figure(figsize=(6, 1))
-    plt.imshow(reshaped, aspect='auto', cmap='plasma')  # or 'hot', 'inferno', etc.
+    plt.imshow(reshaped, aspect='auto', cmap='plasma')
     plt.axis('off')
     plt.tight_layout()
     plt.savefig(filepath, bbox_inches='tight', pad_inches=0)
     plt.close()
 
+    stored_heatmaps.append(f"heatmaps/{filename}")
 
-    stored_heatmaps.append(filename)
 
     return jsonify({
         "status": "received",
@@ -102,19 +87,26 @@ def receive_traces():
         "samples": sample_count
     }), 200
 
+@app.route("/api/get_results", methods=["GET"])
+def get_results():
+    return jsonify({"traces": stored_traces})
+
+@app.route("/api/clear_results", methods=["POST"])
+def clear_results():
+    stored_traces.clear()
+    stored_heatmaps.clear()
+    return jsonify({"status": "Cleared"}), 200
+
+@app.route("/api/heatmaps", methods=["GET"])
+def list_heatmaps():
+    return jsonify({"heatmaps": stored_heatmaps})
+
 @app.route("/heatmap", methods=["GET"])
 def get_heatmap():
     path = "heatmap.png"
     if not os.path.exists(path):
         return "Heatmap not generated yet", 404
     return send_file(path, mimetype="image/png")
-
-@app.route("/api/heatmaps", methods=["GET"])
-def list_heatmaps():
-    return jsonify({"heatmaps": stored_heatmaps})
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
