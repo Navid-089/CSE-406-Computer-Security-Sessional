@@ -13,7 +13,7 @@ This repository contains my solutions, reports and source code for the two **ass
 3. [Offline 1 – Cryptography](#offline-1--cryptography)
 4. [Offline 2 – Side‑Channel Attack](#offline-2--side-channel-attack)
 5. [Global requirements](#global-requirements)
-6. [License](#license)
+
 
 ---
 
@@ -156,9 +156,4 @@ requests>=2.32
 
 ---
 
-## License
-
-Unless stated otherwise in individual lab folders, all code is released under the **MIT License**.  See `LICENSE` for full text.
-
----
 
