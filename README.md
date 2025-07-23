@@ -46,8 +46,6 @@ This repository contains my solutions, reports and source code for the two **ass
         └── …                            ⟶ helpers (DB, normaliser, utils)
 ```
 
-> **Heads‑up** • The ZIP includes the original Git metadata so the file tree above omits `.git/*` for brevity.
-
 ---
 
 ## Quick start
