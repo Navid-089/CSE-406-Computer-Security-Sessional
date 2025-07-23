@@ -80,12 +80,11 @@ $ cd "Offline 2 Side Channel Attack/code" && python app.py
 ```bash
 # inside Offline 1 Cryptography/code
 pip install BitVector pycryptodome prettytable
-python 2005089_task-1.py #CBC mode
+python 2005089_task-1.py # CBC mode
 python 2005089_ctr.py    # encrypt / decrypt via CLI
 python 2005089_task-2.py # ECDH timing table
 ```
 
-*Results* are printed in PrettyTable format and encrypted output is written next to the original image.
 
 ### 📄 Files of interest
 
