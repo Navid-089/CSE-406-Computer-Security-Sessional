@@ -24,14 +24,14 @@ This repository contains my solutions, reports and source code for the two **ass
 ├── Offline 1 Cryptography/
 │   ├── CSE406 - Assignment 1.pdf         ⟶ problem specification
 │   ├── code/                            ⟶ Python sources for AES, ECDH & utilities
-│   │   ├── 2005089_aes_defs.py          ⟶ AES implementation (CTR mode helpers)
+│   │   ├── 2005089_aes_defs.py          ⟶ AES implementation (CBC & CTR mode helpers)
 │   │   ├── 2005089_ctr.py               ⟶ CLI wrapper for AES‑CTR encrypt / decrypt
 │   │   ├── 2005089_ecdh_defs.py         ⟶ Elliptic‑Curve primitives
-│   │   ├── 2005089_task‑1.py            ⟶ Task 1 driver (image encryption)
+│   │   ├── 2005089_task‑1.py            ⟶ Task 1 driver (CBC encryption)
 │   │   ├── 2005089_task‑2.py            ⟶ Task 2 driver (ECDH timing study)
 │   │   └── …                            ⟶ auxiliary demo / helper scripts
 │   ├── 2005089_image‑min.jpg            ⟶ sample plaintext image
-│   └── output_2005089_image‑min.jpg     ⟶ ciphertext image (CTR encrypted)
+│   └── output_2005089_image‑min.jpg     ⟶ ciphertext image (CBC or CTR encrypted)
 │
 └── Offline 2 Side Channel Attack/
     ├── specification.pdf                ⟶ assignment brief
@@ -72,7 +72,7 @@ $ cd "Offline 2 Side Channel Attack/code" && python app.py
 
 ### Goals
 
-1. **AES‑CTR Encryption** – implement AES in both CBC and CTR mode to encrypt / decrypt data-block losslessly.
+1. **AES Encryption** – implement AES in both CBC and CTR mode to encrypt / decrypt data-block losslessly.
 2. **Elliptic‑Curve Diffie–Hellman (ECDH)** – code low‑level EC point arithmetic and benchmark shared‑secret generation for key sizes 128, 192 and 256 bits.
 
 ### How to run
@@ -81,7 +81,7 @@ $ cd "Offline 2 Side Channel Attack/code" && python app.py
 # inside Offline 1 Cryptography/code
 pip install BitVector pycryptodome prettytable
 python 2005089_task-1.py # CBC mode
-python 2005089_ctr.py    # encrypt / decrypt via CLI
+python 2005089_ctr.py    # CTR mode
 python 2005089_task-2.py # ECDH timing table
 ```
 
